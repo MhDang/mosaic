@@ -1,0 +1,51 @@
+[project]
+name = "mosaic"
+version = "0.1.0"
+description = "Exact constrained decoding for diffusion language models"
+requires-python = "==3.11.*"
+dependencies = [
+    "torch==2.13.0",
+    "accelerate>=1.0",
+    "huggingface_hub",
+    "sentencepiece",
+    "protobuf",
+    "numpy",
+    "einops",
+    "tqdm",
+    # Automaton construction; state numbering depends on this version.
+    "automata-lib==9.2.0",
+    "jsonschema",
+    "pytest",
+]
+
+[project.optional-dependencies]
+# Dream, LLaDA and LLaDA2 through their Hub code (mosaic/dlm/compat.py adapts it to this release).
+hf = ["transformers==5.12.1"]
+# SGLang (integrations/sglang). It pins transformers 5.12.1 itself, so it goes in the hf env.
+sglang = ["transformers==5.12.1", "sglang==0.5.20"]
+# vLLM with DiffusionGemma (integrations/vllm, benchmarks/jevbench): its own env.
+# torch is listed again for its source: the PyTorch CUDA 13.0 index, as the vLLM env was tested with.
+vllm = ["torch==2.13.0", "transformers==5.17.0", "vllm==0.29.1rc1.dev551+g1b3b88ec2", "mosaic-vllm", "httpx"]
+
+[tool.uv]
+package = false  # nothing to install: everything runs from the repository root
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+conflicts = [
+    [{ extra = "hf" }, { extra = "vllm" }],
+    [{ extra = "sglang" }, { extra = "vllm" }],
+]
+
+[tool.uv.sources]
+vllm = { index = "vllm-nightly" }
+mosaic-vllm = { path = "integrations/vllm", editable = true }
+torch = [{ index = "pytorch-cu130", extra = "vllm" }]
+
+[[tool.uv.index]]
+name = "vllm-nightly"  # the nightly build of the commit that added DiffusionGemma's structured reads
+url = "https://wheels.vllm.ai/1b3b88ec2b7457aa030db4d0e7d8aaf04f6d0fb8"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true

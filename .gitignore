@@ -1,0 +1,19 @@
+# run artifacts
+/data
+/cache
+outputs/
+*.log
+
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# editors / local tools
+.vscode/
+.idea/
+
+# uv environments
+.venv/
+.venv-*/
